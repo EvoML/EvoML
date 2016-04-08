@@ -14,15 +14,15 @@ from sklearn.base import BaseEstimator, RegressorMixin
 
 class Feature_Stacker(BaseEstimator,RegressorMixin):
 
-    def __init__(self, partition=0.30,population_cnt=40,individual_cnt=5,N_feat_min=5,N_feat_max=21, indpb=0.70, ngen = 50, mutpb = 0.40, cxpb = 0.50, base_estimator=linear_model.LinearRegression(), crossover_func = tools.cxTwoPoint):
-        # partition - text_size
-        # population_cnt - N_population
+    def __init__(self, text_size=0.30,N_population=40,N_individual=5,featLim=[5, 21], indpb=0.70, ngen = 50, mutpb = 0.40, cxpb = 0.50, base_estimator=linear_model.LinearRegression(), crossover_func = tools.cxTwoPoint):
         # min max xlim[]
-        self.partition = partition
-        self.population_cnt = population_cnt
-        self.individual_cnt = individual_cnt
-        self.N_feat_max = N_feat_max
-        self.N_feat_min = N_feat_min
+        """
+        test_size
+        """
+        self.text_size = text_size
+        self.N_population = N_population
+        self.N_individual = N_individual
+        self.featLim = featLim
         self.indpb = indpb
         self.ngen = ngen
         self.mutpb = mutpb
@@ -32,8 +32,8 @@ class Feature_Stacker(BaseEstimator,RegressorMixin):
 
     def get_indiv_sample(self,data):
         feat_name = list(data.columns.values)
-        feat_count = (randint(self.N_feat_min,self.N_feat_max))
-        ind = random.sample(range(0, self.N_feat_max), feat_count)
+        feat_count = (randint(self.featLim[0],self.featLim[1]))
+        ind = random.sample(range(0, self.featLim[1]), feat_count)
         new_feat = []
         for i in range(0,len(ind)):
             new_feat.append(feat_name[ind[i]])
@@ -47,7 +47,7 @@ class Feature_Stacker(BaseEstimator,RegressorMixin):
         input_feat = list(X.columns.values);
         creator.create("FitnessMax", base.Fitness, weights=(-1.0,))
         creator.create("Individual", list, fitness=creator.FitnessMax)
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=self.partition, random_state=42)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=self.text_size, random_state=42)
         self.X_train = X_train
         self.X_test = X_test
         self.y_train = y_train
@@ -55,14 +55,14 @@ class Feature_Stacker(BaseEstimator,RegressorMixin):
         
         toolbox = base.Toolbox()
         toolbox.register("attr_bool", self.get_indiv_sample, data=X_train)
-        toolbox.register("individual", tools.initRepeat, creator.Individual, toolbox.attr_bool, n=self.individual_cnt)
+        toolbox.register("individual", tools.initRepeat, creator.Individual, toolbox.attr_bool, n=self.N_individual)
         toolbox.register("population", tools.initRepeat, list, toolbox.individual)
         toolbox.register("evaluate", evalOneMax, y_tr = y_train, x_te = X_test, y_te = y_test, base_estimator = self.base_estimator);
         toolbox.register("mate", self.crossover_func)
         toolbox.register("mutate", mutate_feat, indpb=self.indpb,input_fe = input_feat, X_tr = X_train)
         toolbox.register("select", tools.selTournament, tournsize=3)
         
-        pop = toolbox.population(n=self.population_cnt)
+        pop = toolbox.population(n=self.N_population)
         hof = tools.HallOfFame(1, similar=compare_hof);
         stats = tools.Statistics(lambda ind: ind.fitness.values)
         stats.register("avg", np.mean)

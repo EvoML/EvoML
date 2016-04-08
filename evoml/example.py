@@ -14,7 +14,7 @@ if __name__ == "__main__":
     output = data[output_feat]
     FS = Feature_Stacker(ngen=4)
     FS.fit(features,output)
-    print FS.get_params()
+    #print FS.get_params()
     final_result = FS.predict(features)
     print FS.score(features, output)
     #pop, log, hof = fit(self,features,output)
