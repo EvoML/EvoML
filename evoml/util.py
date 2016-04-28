@@ -9,4 +9,4 @@ import math
 from sklearn.cross_validation import train_test_split
 
 def compare_hof(ind1, ind2):
-    return np.all(ind1.fitness==ind2.fitness);
+    return np.all(ind1.fitness==ind2.fitness)

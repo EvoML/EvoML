@@ -12,7 +12,7 @@ if __name__ == "__main__":
     output_feat = ['Salary']
     features = data[input_feat]
     output = data[output_feat]
-    FS = Feature_Stacker(ngen=4)
+    FS = Feature_Stacker(ngen=20)
     FS.fit(features,output)
     #print FS.get_params()
     final_result = FS.predict(features)
