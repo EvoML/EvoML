@@ -1,13 +1,23 @@
-
+# -*- coding: utf-8 -*-
 """
-Algorithm: FEMPO
-Fitness each model private oob.
+Copyright 2016 Bhanu Pratap and Harsh Nisar.
 
-The fitness function of ensemble is the average of the RMSE of each child model over private
-oob set for respective models. 
+This file is part of the Evoml library. 
 
-mutators: same as before.
+The Evoml library is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License v3 or later.
+
+Check the licesne file recieved along with the software for further details.
 """
+
+## Algorithm: FEMPO
+## Fitness each model private oob.
+
+## The fitness function of ensemble is the average of the RMSE of each child model over private
+## oob set for respective models. 
+
+## mutators: same as before.
+
 
 def warn(*args, **kwargs):
     pass
@@ -19,11 +29,13 @@ import pandas as pd
 import random
 # from mutators import segment_mutator
 
-from evaluators import eval_each_model_PT_KNN_EG
+from .evaluators import eval_each_model_PT_KNN_EG
 
-from util import EstimatorGene
-from util import centroid_df
-from util import distance
+from .mutators import segment_mutator_EG
+
+from .util import EstimatorGene
+from .util import centroid_df
+from .util import distance
 
 from deap import algorithms
 from deap import base
@@ -40,56 +52,6 @@ from sklearn.metrics import mean_squared_error
 
         
 
-def segment_mutator_EG_PT(individual, pool_data, indpb):
-    """
-    Takes data from pool_data and mutuates existing training data
-    to generate new fit estimators.
-    
-    Parameters
-    ----------
-    individual: List of estimators.
-
-    Mutate can be:
-     - add rows from pool_data randomly
-     - delete rows randomly from the individual
-     - replace a few rows from that of df 
-    """
-    df_train = pool_data
-    
-    for i, eg_ in enumerate(individual):
-        if random.random()>=indpb:
-            continue
-        # play around with tenpercent of current data.
-        df_ = eg_.get_data()
-
-        n_rows = int(0.05*pool_data.shape[0])
-        rnd = random.random()
-        if rnd<0.33:
-            #add rows from the main df
-            
-            rows = np.random.choice(df_train.index.values, n_rows)
-            df_ = df_.append(df_train.ix[rows])
-        elif rnd<0.66:
-            # delete rows randomly from the individual
-            # issue with using drop is that all rows with the same index get deleted.
-            new_shape = df_.shape[0] - n_rows
-            df_ = df_.sample(n=new_shape, replace = False, axis = 0)
-            # This should be as good as deleting.
-            # df_.drop(labels=np.random.choice(df_.index, n_rows), axis=0, inplace=True)
-        else:
-            #replace a few rows
-            new_shape = df_.shape[0] - n_rows
-            df_ = df_.sample(n=new_shape, replace = False, axis = 0)
-            # df_.drop(labels=np.random.choice(df_.index, n_rows), axis=0, inplace=True)
-            rows = np.random.choice(df_train.index.values, n_rows)
-            df_ = df_.append(df_train.ix[rows])
-        
-        ## Retrain the model in EstimatorGene with new data.
-        eg_ =  EstimatorGene(df_.iloc[:,:-1], df_.iloc[:,-1], eg_.base_estimator, private_test = True )
-        individual[i] = eg_
-
-    
-    return (individual,)
 
 
 def get_mdl_sample(sample_percentage, pool_data, base_estimator):
@@ -117,7 +79,7 @@ def similar_individual(ind1, ind2):
     return np.all(ind1.fitness.values == ind2.fitness.values)
 
 
-class BasicSegmenterEG_FEMPT(BaseEstimator, RegressorMixin):
+class BasicSegmenter_FEMPT(BaseEstimator, RegressorMixin):
     """
     Uses basic evolutionary algorithm to find the best subsets of X and trains
     Linear Regression on each subset. For given row of input, prediction
@@ -230,7 +192,7 @@ class BasicSegmenterEG_FEMPT(BaseEstimator, RegressorMixin):
 
         toolbox.register("evaluate", eval_each_model_PT_KNN_EG, df = df, base_estimator = self.base_estimator, n_votes = self.n_votes)
         toolbox.register("mate", self.crossover_func)
-        toolbox.register("mutate", segment_mutator_EG_PT, pool_data = df, indpb = self.indpb)
+        toolbox.register("mutate", segment_mutator_EG, pool_data = df, indpb = self.indpb, private_test = True)
         toolbox.register("select", tools.selTournament, tournsize= self.tournsize)
 
 
