@@ -1,13 +1,24 @@
+# -*- coding: utf-8 -*-
+"""
+Copyright 2016 Bhanu Pratap and Harsh Nisar.
+
+This file is part of the Evoml library. 
+
+The Evoml library is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License v3 or later.
+
+Check the licesne file recieved along with the software for further details.
+"""
+
 import numpy as np
 import pandas as pd
 import random
-# from mutators import segment_mutator
 
-from evaluators import evalOneMax_KNN_EG
-from util import EstimatorGene
-
-from util import centroid_df
-from util import distance
+from .mutators import segment_mutator_EG
+from .evaluators import evalOneMax_KNN_EG
+from .util import EstimatorGene
+from .util import centroid_df
+from .util import distance
 
 from deap import algorithms
 from deap import base
@@ -21,6 +32,11 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.cross_validation import train_test_split
 from sklearn.base import clone
 
+<<<<<<< HEAD
+
+
+=======
+>>>>>>> 1394a69ab82aa236d32ed15e9c68543fe0bac302
 def warn(*args, **kwargs):
     pass
 
@@ -28,6 +44,8 @@ import warnings
 warnings.warn = warn
         
 
+<<<<<<< HEAD
+=======
 def segment_mutator_EG(individual, pool_data, indpb):
     """
     Takes data from pool_data and mutuates existing training data
@@ -77,6 +95,7 @@ def segment_mutator_EG(individual, pool_data, indpb):
     
     return (individual,)
 
+>>>>>>> 1394a69ab82aa236d32ed15e9c68543fe0bac302
 
 def get_mdl_sample(sample_percentage, pool_data, base_estimator):
     """ Returns an instance of EstimatorGene 
@@ -102,7 +121,11 @@ def similar_individual(ind1, ind2):
     return np.all(ind1.fitness.values == ind2.fitness.values)
 
 
+<<<<<<< HEAD
+class BasicSegmenter_FEGT(BaseEstimator, RegressorMixin):
+=======
 class BasicSegmenterEG(BaseEstimator, RegressorMixin):
+>>>>>>> 1394a69ab82aa236d32ed15e9c68543fe0bac302
     """
     Uses basic evolutionary algorithm to find the best subsets of X and trains
     Linear Regression on each subset. For given row of input, prediction

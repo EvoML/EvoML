@@ -1,3 +1,15 @@
+# -*- coding: utf-8 -*-
+"""
+Copyright 2016 Bhanu Pratap and Harsh Nisar.
+
+This file is part of the Evoml library. 
+
+The Evoml library is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License v3 or later.
+
+Check the licesne file recieved along with the software for further details.
+"""
+
 import numpy as np
 from sklearn.metrics import mean_squared_error
 from util import centroid_df

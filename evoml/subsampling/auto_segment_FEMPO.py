@@ -1,13 +1,23 @@
-
+# -*- coding: utf-8 -*-
 """
-Algorithm: FEMPO
-Fitness each model private oob.
+Copyright 2016 Bhanu Pratap and Harsh Nisar.
 
-The fitness function of ensemble is the average of the RMSE of each child model over private
-oob set for respective models. 
+This file is part of the Evoml library. 
 
-mutators: same as before.
+The Evoml library is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License v3 or later.
+
+Check the licesne file recieved along with the software for further details.
 """
+
+# Algorithm: FEMPO
+# Fitness each model private oob.
+
+# The fitness function of ensemble is the average of the RMSE of each child model over private
+# oob set for respective models. 
+
+# mutators: same as before.
+
 def warn(*args, **kwargs):
     pass
 import warnings
@@ -18,11 +28,20 @@ import pandas as pd
 import random
 # from mutators import segment_mutator
 
+<<<<<<< HEAD
+from .evaluators import eval_each_model_oob_KNN_EG
+from .mutators import segment_mutator_EG
+
+from .util import EstimatorGene
+from .util import centroid_df
+from .util import distance
+=======
 from evaluators import eval_each_model_oob_KNN_EG
 from util import EstimatorGene
 
 from util import centroid_df
 from util import distance
+>>>>>>> 1394a69ab82aa236d32ed15e9c68543fe0bac302
 
 from deap import algorithms
 from deap import base
@@ -37,6 +56,8 @@ from sklearn.cross_validation import train_test_split
 from sklearn.base import clone
 from sklearn.metrics import mean_squared_error
 
+<<<<<<< HEAD
+=======
         
 
 def segment_mutator_EG(individual, pool_data, indpb):
@@ -88,6 +109,7 @@ def segment_mutator_EG(individual, pool_data, indpb):
     
     return (individual,)
 
+>>>>>>> 1394a69ab82aa236d32ed15e9c68543fe0bac302
 
 def get_mdl_sample(sample_percentage, pool_data, base_estimator):
     """ Returns an instance of EstimatorGene 

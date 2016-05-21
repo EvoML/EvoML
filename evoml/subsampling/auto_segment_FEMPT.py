@@ -1,13 +1,22 @@
-
+# -*- coding: utf-8 -*-
 """
-Algorithm: FEMPO
-Fitness each model private oob.
+Copyright 2016 Bhanu Pratap and Harsh Nisar.
 
-The fitness function of ensemble is the average of the RMSE of each child model over private
-oob set for respective models. 
+This file is part of the Evoml library. 
 
-mutators: same as before.
+The Evoml library is free software: you can redistribute it and/or modify it
+under the terms of the GNU General Public License v3 or later.
+
+Check the licesne file recieved along with the software for further details.
 """
+
+## Algorithm: FEMPO
+## Fitness each model private oob.
+
+## The fitness function of ensemble is the average of the RMSE of each child model over private
+## oob set for respective models. 
+
+## mutators: same as before.
 
 def warn(*args, **kwargs):
     pass
@@ -19,11 +28,21 @@ import pandas as pd
 import random
 # from mutators import segment_mutator
 
+<<<<<<< HEAD
+from .evaluators import eval_each_model_PT_KNN_EG
+
+from .mutators import segment_mutator_EG
+
+from .util import EstimatorGene
+from .util import centroid_df
+from .util import distance
+=======
 from evaluators import eval_each_model_PT_KNN_EG
 
 from util import EstimatorGene
 from util import centroid_df
 from util import distance
+>>>>>>> 1394a69ab82aa236d32ed15e9c68543fe0bac302
 
 from deap import algorithms
 from deap import base
@@ -40,6 +59,8 @@ from sklearn.metrics import mean_squared_error
 
         
 
+<<<<<<< HEAD
+=======
 def segment_mutator_EG_PT(individual, pool_data, indpb):
     """
     Takes data from pool_data and mutuates existing training data
@@ -90,6 +111,7 @@ def segment_mutator_EG_PT(individual, pool_data, indpb):
 
     
     return (individual,)
+>>>>>>> 1394a69ab82aa236d32ed15e9c68543fe0bac302
 
 
 def get_mdl_sample(sample_percentage, pool_data, base_estimator):
@@ -117,7 +139,11 @@ def similar_individual(ind1, ind2):
     return np.all(ind1.fitness.values == ind2.fitness.values)
 
 
+<<<<<<< HEAD
+class BasicSegmenter_FEMPT(BaseEstimator, RegressorMixin):
+=======
 class BasicSegmenterEG_FEMPT(BaseEstimator, RegressorMixin):
+>>>>>>> 1394a69ab82aa236d32ed15e9c68543fe0bac302
     """
     Uses basic evolutionary algorithm to find the best subsets of X and trains
     Linear Regression on each subset. For given row of input, prediction
@@ -230,7 +256,11 @@ class BasicSegmenterEG_FEMPT(BaseEstimator, RegressorMixin):
 
         toolbox.register("evaluate", eval_each_model_PT_KNN_EG, df = df, base_estimator = self.base_estimator, n_votes = self.n_votes)
         toolbox.register("mate", self.crossover_func)
+<<<<<<< HEAD
+        toolbox.register("mutate", segment_mutator_EG, pool_data = df, indpb = self.indpb, private_test = True)
+=======
         toolbox.register("mutate", segment_mutator_EG_PT, pool_data = df, indpb = self.indpb)
+>>>>>>> 1394a69ab82aa236d32ed15e9c68543fe0bac302
         toolbox.register("select", tools.selTournament, tournsize= self.tournsize)
 
 
