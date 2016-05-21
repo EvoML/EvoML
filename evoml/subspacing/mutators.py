@@ -1,3 +1,9 @@
+'''
+This file contains all the mutation function. Presently, there is only one mutation
+function but different mutation functions can be put here and used accordingly. 
+The mutation function is called by GA as per mutpb and then indpb helps in deciding 
+whether the chromosome inside the individual will be mutated or not.
+'''
 import random
 from random import randint
 import pandas as pd
@@ -6,10 +12,15 @@ from sklearn import linear_model
 import numpy as np
 from sklearn.metrics import mean_squared_error
 import math
-#from EstimatorGene import EstimatorGene
 from util import EstimatorGene
 
 def mutate_feat(individual, indpb, input_fe, X_tr):
+    '''
+    The function mutates the chromosome in three ways: 
+    1. Insertion
+    2. Deletion
+    3. Insertion and Deletion
+    '''
     for i in range(0,len(individual)):
         chrom = individual[i].X
         if(random.random()<indpb):

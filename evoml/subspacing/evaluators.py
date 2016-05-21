@@ -1,3 +1,7 @@
+'''
+All the evaluation functions are inside this files.
+Add new evalution functions in this file which will be according to the fitness function to be used.
+'''
 import random
 from random import randint
 import pandas as pd
@@ -9,11 +13,17 @@ import math
 from sklearn.cross_validation import train_test_split
 
 def evalOneMax(individual, x_te, y_te, test_frac, test_frac_flag):
-    # y_te need to be defined now, as it is already there in the individual.
+    '''
+    It evaluates the whole ensemble as one. Predicting for each chromosome and then
+    averaging the predictions.
+    '''
     predict_vals = []
     y_te = pd.DataFrame(y_te)
-    x_te = x_te.sample(frac=test_frac, replace=test_frac_flag)
-    y_te = y_te.loc[list(x_te.index)]
+    # Below is an experimental line. This was to change the test sample as well for each but 
+    # later we found out that this is not going to work as we were thinking because of eaSimple's
+    # inherent nature
+    #x_te = x_te.sample(frac=test_frac, replace=test_frac_flag)
+    #y_te = y_te.loc[list(x_te.index)]
     for i in range(0,len(individual)):
         chromosome = individual[i]
         predict_vals.append(get_predictions(x_te, chromosome))
@@ -34,21 +44,17 @@ def get_predictions(x_te, chrom):
     return predicted
 
 def evalOneMax2(individual, X_f, y_f):
+    '''
+    This function evaluates the whole ensemble by calculating error for each of the 
+    individual and then averaging the errors for all the chromosomes.
+    '''
     predict_rmses = []
     predict_vals = []
     ind_f = list(X_f.index)
-    #print "Full - "
-    #print len(ind_f)
     for i in range(0,len(individual)):
         chromosome = individual[i]
-        ind_train = list(chromosome.X.index)
-        #print "Train - "
-        #print len(ind_train)
+        ind_train = list(chromosome.X.index)        
         ind_test = list(set(ind_f)-set(ind_train))
-        #print len(set(ind_f))
-        #print len(set(ind_train))
-        #print "Test - "
-        #print len(ind_test)
         x_te = X_f.loc[ind_test]
         y_te = y_f.loc[ind_test]    
         predict_vals.append(get_predictions(x_te, chromosome))

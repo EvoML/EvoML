@@ -20,10 +20,14 @@ b_feat.columns = ['feat_0','feat_1','feat_2','feat_3','feat_4','feat_5','feat_6'
 b_target = pd.DataFrame(boston.target)
 b_target.columns = ['output']
 
-# FEGT
-FS1 = FeatureStackerFEGT()
-FS1.fit(b_feat, b_target)
+def testSuite():
+	# FEGT
+	FS1 = FeatureStackerFEGT()
+	FS1.fit(b_feat, b_target)
 
-# FEMPO
-FS2 = FeatureStackerFEMPO()
-FS2.fit(b_feat, b_target)
+	# FEMPO
+	FS2 = FeatureStackerFEMPO()
+	FS2.fit(b_feat, b_target)
+
+if __name__ == "__main__":
+	testSuite()
