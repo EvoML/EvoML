@@ -28,6 +28,7 @@ def segment_mutator_EG(individual, pool_data, indpb, private_test = False):
      - add rows from pool_data randomly
      - delete rows randomly from the individual
      - replace a few rows from that of df 
+
     
     Parameters
     ----------
@@ -50,6 +51,7 @@ def segment_mutator_EG(individual, pool_data, indpb, private_test = False):
         df_ = eg_.get_data()
 
         n_rows = int(0.05*pool_data.shape[0])
+
         rnd = random.random()
         if rnd<0.33:
             #add rows from the main df
@@ -126,5 +128,3 @@ def segment_mutator_EG(individual, pool_data, indpb, private_test = False):
 
     
 #     return (individual,)
-
-
