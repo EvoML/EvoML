@@ -30,8 +30,12 @@ Currently we are experimenting with 3 different `fitness` functions:
 
 You can read about them in our paper, *Can evolutionary sampling improve bagged ensembles?*
 
-##Example
+##Usage
 Add link to a demo notebook
+
+##Requirements
+Python libraries: DEAP, Pandas, sklearn and numpy.
+
 
 
 ##Contribute
