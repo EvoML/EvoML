@@ -26,17 +26,15 @@ Currently we are experimenting with 3 different `fitness` functions:
 
 - FEMPO (Fitness Each Model Private OOB)
 - FEGT (Fitness Ensemble Global Test)
-- FEPT (Fitness Each Model Private Test)
+- FEMPT (Fitness Each Model Private Test)
 
 You can read about them in our paper, *Can evolutionary sampling improve bagged ensembles?*
 
 ##Usage
-Add link to a demo notebook
+Check out `EvoML - Example Usage.ipynb`.
 
 ##Requirements
 Python libraries: DEAP, Pandas, sklearn and numpy.
-
-
 
 ##Contribute
 In the spirit of `reproduciblity` we've kept the research open and would be thrilled to have contributors and collaboraters to the research. Please get in touch any ideas or submit an issue if you find a bug.

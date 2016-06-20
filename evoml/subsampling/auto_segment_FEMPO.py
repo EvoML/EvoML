@@ -245,7 +245,7 @@ class BasicSegmenter_FEMPO(BaseEstimator, RegressorMixin):
 
         #stats = tools.Statistics(lambda ind: [x.shape[0] for x in ind])
         
-        pop, log = algorithms.eaSimple(pop, toolbox, cxpb=self.cxpb, mutpb=self.mutpb, ngen=self.ngen, stats=self.stats, halloffame= hof, verbose = True)
+        pop, log = algorithms.eaSimple(pop, toolbox, cxpb=self.cxpb, mutpb=self.mutpb, ngen=self.ngen, stats=stats, halloffame= hof, verbose = True)
         
         self.pop = pop
         self.log = log
