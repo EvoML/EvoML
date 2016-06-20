@@ -27,63 +27,66 @@ from sklearn.base import BaseEstimator, RegressorMixin
 from util import EstimatorGene
 
 class FeatureStackerFEMPO(BaseEstimator,RegressorMixin):
+    """
+    Uses basic evolutionary algorithm to find the best subspaces of X and trains 
+    a model on each subspace. For given row of input, prediction is based on the ensemble
+    which has performed the best on the test set. The prediction is the average of all the 
+    chromosome predictions but the remember, that the fitness function is the average of the 
+    errors for each of the chromosome.
 
-    def __init__(self, test_size=0.30,N_population=40,N_individual=5,featMin=1,featMax=None, indpb=0.05, ngen = 50, mutpb = 0.40, cxpb = 0.50, base_estimator=linear_model.LinearRegression(), crossover_func = tools.cxTwoPoint):
-        """
-        Uses basic evolutionary algorithm to find the best subspaces of X and trains 
-        a model on each subspace. For given row of input, prediction is based on the ensemble
-        which has performed the best on the test set. The prediction is the average of all the 
-        chromosome predictions but the remember, that the fitness function is the average of the 
-        errors for each of the chromosome.
+    Same as the BasicSegmenter, but uses list of thrained models instead of DataFrames
+    as each individual. Done to boost performance. 
 
-        Same as the BasicSegmenter, but uses list of thrained models instead of DataFrames
-        as each individual. Done to boost performance. 
+    Parameters
+    ----------
+    test_size: float, default = 0.2
+        Test size that the algorithm internally uses in its fitness
+        function
+    
+    N_population: Integer, default : 30
+        The population of the individuals that the evolutionary algorithm is going to use. 
+    
+    N_individual: Integer, default : 5
+        Number of chromosomes in each individual of the population
 
-        Parameters
-        ----------
-        test_size: float, default = 0.2
-            Test size that the algorithm internally uses in its fitness
-            function
+    featMin: Integer, default : 1
+        The minimum number of features for the sub space from the dataset
+        Cannot be <= 0 else changes it to 1 instead.
+    
+    featMax: Integer, default : max number of features in the dataset
+        The maximum number of features for the sub space from the dataset
+        Cannot be <featMin else changes it to equal to featMin
+
+    indpb: float, default : 0.05
+        The number that defines the probability by which the chromosome will be mutated.
+
+    ngen: Integer, default : 10
+        The iterations for which the evolutionary algorithm is going to run.
+
+    mutpb: float, default : 0.40
+        The probability by which the individuals will go through mutation.
+
+    cxpb: float, default : 0.50
+        The probability by which the individuals will go through cross over.
+
+    base_estimator: model, default: LinearRegression
+        The type of model which is to be trained in the chromosome.
+
+    crossover_func: cross-over function, default : tools.cxTwoPoint [go through eaSimple's documentation]
+        The corssover function that will be used between the individuals
+
+    Attributes
+    -----------
+    segment: HallOfFame individual 
+        Gives you the best individual from the whole population. 
+        The best individual can be accessed via segment[0]
+
+    """
+
+    def __init__(self, test_size=0.30,N_population=40,N_individual=5,featMin=1,featMax=None,
+     indpb=0.05, ngen = 50, mutpb = 0.40, cxpb = 0.50, base_estimator=linear_model.LinearRegression(),
+     crossover_func = tools.cxTwoPoint):
         
-        N_population: Integer, default : 30
-            The population of the individuals that the evolutionary algorithm is going to use. 
-        
-        N_individual: Integer, default : 5
-            Number of chromosomes in each individual of the population
-
-        featMin: Integer, default : 1
-            The minimum number of features for the sub space from the dataset
-            Cannot be <= 0 else changes it to 1 instead.
-        
-        featMax: Integer, default : max number of features in the dataset
-            The maximum number of features for the sub space from the dataset
-            Cannot be <featMin else changes it to equal to featMin
-
-        indpb: float, default : 0.05
-            The number that defines the probability by which the chromosome will be mutated.
-
-        ngen: Integer, default : 10
-            The iterations for which the evolutionary algorithm is going to run.
-
-        mutpb: float, default : 0.40
-            The probability by which the individuals will go through mutation.
-
-        cxpb: float, default : 0.50
-            The probability by which the individuals will go through cross over.
-
-        base_estimator: model, default: LinearRegression
-            The type of model which is to be trained in the chromosome.
-
-        crossover_func: cross-over function, default : tools.cxTwoPoint [go through eaSimple's documentation]
-            The corssover function that will be used between the individuals
-
-        Attributes
-        -----------
-        segment: HallOfFame individual 
-            Gives you the best individual from the whole population. 
-            The best individual can be accessed via segment[0]
-
-        """
         self.test_size = test_size
         self.N_population = N_population
         self.N_individual = N_individual

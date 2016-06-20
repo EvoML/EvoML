@@ -28,20 +28,12 @@ import pandas as pd
 import random
 # from mutators import segment_mutator
 
-<<<<<<< HEAD
 from .evaluators import eval_each_model_oob_KNN_EG
 from .mutators import segment_mutator_EG
 
 from .util import EstimatorGene
 from .util import centroid_df
 from .util import distance
-=======
-from evaluators import eval_each_model_oob_KNN_EG
-from util import EstimatorGene
-
-from util import centroid_df
-from util import distance
->>>>>>> 1394a69ab82aa236d32ed15e9c68543fe0bac302
 
 from deap import algorithms
 from deap import base
@@ -55,61 +47,6 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.cross_validation import train_test_split
 from sklearn.base import clone
 from sklearn.metrics import mean_squared_error
-
-<<<<<<< HEAD
-=======
-        
-
-def segment_mutator_EG(individual, pool_data, indpb):
-    """
-    Takes data from pool_data and mutuates existing training data
-    to generate new fit estimators.
-    
-    Parameters
-    ----------
-    individual: List of estimators.
-
-    Mutate can be:
-     - add rows from pool_data randomly
-     - delete rows randomly from the individual
-     - replace a few rows from that of df 
-    """
-    df_train = pool_data
-    
-    for i, eg_ in enumerate(individual):
-        if random.random()>=indpb:
-            continue
-        df_ = eg_.get_data()
-
-        # play around with tenpercent of current data.
-        n_rows = int(0.05*pool_data.shape[0])
-        rnd = random.random()
-        if rnd<0.33:
-            #add rows from the main df
-            
-            rows = np.random.choice(df_train.index.values, n_rows)
-            df_ = df_.append(df_train.ix[rows])
-        elif rnd<0.66:
-            # delete rows randomly from the individual
-            new_shape = df_.shape[0] - n_rows
-            df_ = df_.sample(n=new_shape, replace = False, axis = 0)
-            # df_.drop(labels=np.random.choice(df_.index, n_rows), axis=0, inplace=True)
-        else:
-            #replace a few rows
-            new_shape = df_.shape[0] - n_rows
-            df_ = df_.sample(n=new_shape, replace = False, axis = 0)
-            # df_.drop(labels=np.random.choice(df_.index, n_rows), axis=0, inplace=True)
-            rows = np.random.choice(df_train.index.values, n_rows)
-            df_ = df_.append(df_train.ix[rows])
-        
-        ## Retrain the model in EstimatorGene with new data.
-        eg_ =  EstimatorGene(df_.iloc[:,:-1], df_.iloc[:,-1], eg_.base_estimator)
-        individual[i] = eg_
-
-    
-    return (individual,)
-
->>>>>>> 1394a69ab82aa236d32ed15e9c68543fe0bac302
 
 def get_mdl_sample(sample_percentage, pool_data, base_estimator):
     """ Returns an instance of EstimatorGene 
@@ -135,7 +72,7 @@ def similar_individual(ind1, ind2):
     return np.all(ind1.fitness.values == ind2.fitness.values)
 
 
-class BasicSegmenterEG_FEMPO(BaseEstimator, RegressorMixin):
+class BasicSegmenter_FEMPO(BaseEstimator, RegressorMixin):
     """
     Uses basic evolutionary algorithm to find the best subsets of X and trains
     Linear Regression on each subset. For given row of input, prediction
@@ -285,22 +222,22 @@ class BasicSegmenterEG_FEMPO(BaseEstimator, RegressorMixin):
             return mean_squared_error(y_preds_ensemble, unseen_y)
 
         if self.statistics != None:
-            # stats = tools.Statistics(lambda ind: ind.fitness.values)
+            stats = tools.Statistics(lambda ind: ind.fitness.values)
             
-            stats_fitness = tools.Statistics(key = lambda ind: ind.fitness.values)
-            stats_unseen_performance = tools.Statistics(key = eval_unseen_per_gen)
-            mstats = tools.MultiStatistics(fitness=stats_fitness, unseen = stats_unseen_performance)
-            stats = tools.Statistics(eval_unseen_per_gen)
+            # stats_fitness = tools.Statistics(key = lambda ind: ind.fitness.values)
+            # stats_unseen_performance = tools.Statistics(key = eval_unseen_per_gen)
+            # mstats = tools.MultiStatistics(fitness=stats_fitness, unseen = stats_unseen_performance)
+            # stats = tools.Statistics(eval_unseen_per_gen)
             
             stats.register("avg", np.mean)
             stats.register("std", np.std)
             stats.register("min", np.min)
             stats.register("max", np.max)
             
-            mstats.register("avg", np.mean)
-            mstats.register("std", np.std)
-            mstats.register("min", np.min)
-            mstats.register("max", np.max)
+            # mstats.register("avg", np.mean)
+            # mstats.register("std", np.std)
+            # mstats.register("min", np.min)
+            # mstats.register("max", np.max)
 
         else:
             #None
@@ -308,7 +245,7 @@ class BasicSegmenterEG_FEMPO(BaseEstimator, RegressorMixin):
 
         #stats = tools.Statistics(lambda ind: [x.shape[0] for x in ind])
         
-        pop, log = algorithms.eaSimple(pop, toolbox, cxpb=self.cxpb, mutpb=self.mutpb, ngen=self.ngen, stats=None, halloffame= hof, verbose = True)
+        pop, log = algorithms.eaSimple(pop, toolbox, cxpb=self.cxpb, mutpb=self.mutpb, ngen=self.ngen, stats=stats, halloffame= hof, verbose = True)
         
         self.pop = pop
         self.log = log
