@@ -21,10 +21,12 @@ import math
 from sklearn.cross_validation import train_test_split
 from evaluators import evalOneMax
 from evaluators import evalOneMax2
+from evaluators import evalOneMax_class1
 from mutators import mutate_feat
 from .util import compare_hof
 from sklearn.base import BaseEstimator, RegressorMixin
 from .util import EstimatorGene
+from collections import Counter
 
 class FeatureStackerFEGT(BaseEstimator,RegressorMixin):
     """
@@ -87,8 +89,8 @@ class FeatureStackerFEGT(BaseEstimator,RegressorMixin):
     def __init__(self, test_size=0.20,N_population=30,N_individual=5,featMin=1,featMax=None,
         indpb=0.05, ngen = 10, mutpb = 0.40, cxpb = 0.50,
         base_estimator=linear_model.LinearRegression(), crossover_func = tools.cxTwoPoint,
-        test_frac=0.30, test_frac_flag = False):
-        
+        test_frac=0.30, test_frac_flag = False, model_type = 'regression', verbose_flag = True):
+        # model_type defines whether its a regression method or a classification method
         self.test_size = test_size
         self.N_population = N_population
         self.N_individual = N_individual
@@ -109,6 +111,8 @@ class FeatureStackerFEGT(BaseEstimator,RegressorMixin):
                 featMax = featMin
                 print "featMax cannot be <featMin, hence has been made equal to featMin"
         self.featMax = featMax        
+        self.model_type = model_type
+        self.verbose_flag = verbose_flag
 
     def get_indiv_sample(self,data,output,base_estimator):
         '''
@@ -151,7 +155,10 @@ class FeatureStackerFEGT(BaseEstimator,RegressorMixin):
         toolbox.register("attr_bool", self.get_indiv_sample, data=X_train, output=y_train, base_estimator=self.base_estimator)
         toolbox.register("individual", tools.initRepeat, creator.Individual, toolbox.attr_bool, n=self.N_individual)
         toolbox.register("population", tools.initRepeat, list, toolbox.individual)
-        toolbox.register("evaluate", evalOneMax,x_te = X_test, y_te = y_test, test_frac = self.test_frac, test_frac_flag = self.test_frac_flag)
+        if (self.model_type=='regression'):
+            toolbox.register("evaluate", evalOneMax,x_te = X_test, y_te = y_test, test_frac = self.test_frac, test_frac_flag = self.test_frac_flag)
+        elif (self.model_type=='classification'):
+            toolbox.register("evaluate", evalOneMax_class1,x_te = X_test, y_te = y_test, test_frac = self.test_frac, test_frac_flag = self.test_frac_flag)
         toolbox.register("mate", self.crossover_func)
         toolbox.register("mutate", mutate_feat, indpb=self.indpb,input_fe = input_feat, X_tr = X_train)
         toolbox.register("select", tools.selTournament, tournsize=3)
@@ -162,7 +169,7 @@ class FeatureStackerFEGT(BaseEstimator,RegressorMixin):
         stats.register("avg", np.mean)
         stats.register("min", np.min)
         stats.register("max", np.max)
-        self.pop, self.logbook = algorithms.eaSimple(pop, toolbox, cxpb=self.cxpb, mutpb=self.mutpb, ngen=self.ngen, stats=stats, halloffame=hof,  verbose=True)
+        self.pop, self.logbook = algorithms.eaSimple(pop, toolbox, cxpb=self.cxpb, mutpb=self.mutpb, ngen=self.ngen, stats=stats, halloffame=hof,  verbose=self.verbose_flag)
         self.hof = hof
         self.segment = hof
         return self
@@ -172,17 +179,25 @@ class FeatureStackerFEGT(BaseEstimator,RegressorMixin):
         Function to predict via the best model. Takes as input features for prediction.
         input_features: The set of features for which you wish to predict the output.
         '''
-        predict_1 = []
-        indiv = self.hof[0]
-        for i in range(0,len(indiv)):
-            predict_1.append(self.get_pre(indiv[i], input_features))
-        result = [];
-        for i in range(0,len(indiv)):
-            if(i==0):
-                result = predict_1[0];
-            else:
-                result = result + predict_1[i];
-        final_result = result/len(indiv)
+        if(self.model_type == 'regression'):
+            predict_1 = []
+            indiv = self.hof[0]
+            for i in range(0,len(indiv)):
+                predict_1.append(self.get_pre(indiv[i], input_features))
+            result = [];
+            for i in range(0,len(indiv)):
+                if(i==0):
+                    result = predict_1[0];
+                else:
+                    result = result + predict_1[i];
+            final_result = result/len(indiv)
+        elif(self.model_type == 'classification'):
+            predict_list = []
+            indiv = self.hof[0]
+            for i in range(0,len(indiv)):
+                predict_list.append(self.get_pre(indiv[i], input_features))
+            final_pred = np.array([Counter(instance_pred).most_common(1)[0][0] for instance_pred in zip(*predict_list)])
+            final_result = final_pred
         return final_result
 
     def get_pre(self, chrom, input_features):

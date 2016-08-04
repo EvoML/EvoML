@@ -11,6 +11,8 @@ import numpy as np
 from sklearn.metrics import mean_squared_error
 import math
 from sklearn.cross_validation import train_test_split
+from sklearn.metrics import accuracy_score
+from collections import Counter
 
 def evalOneMax(individual, x_te, y_te, test_frac, test_frac_flag):
     '''
@@ -61,3 +63,33 @@ def evalOneMax2(individual, X_f, y_f):
         predict_rmses.append(mean_squared_error(y_te, predict_vals[i]))
     final_rmse = sum(predict_rmses)/len(predict_rmses)
     return final_rmse,
+
+def evalOneMax_class(individual, X_f, y_f):
+    predict_acc = []
+    predict_vals = []
+    ind_f = list(X_f.index)
+    for i in range(0,len(individual)):
+        chromosome = individual[i]
+        ind_train = list(chromosome.X.index)
+        ind_test = list(set(ind_f)-set(ind_train))
+        x_te = X_f.loc[ind_test]
+        y_te = y_f.loc[ind_test]
+        predict_vals.append(get_predictions(x_te, chromosome))
+        predict_acc.append(accuracy_score(y_te, predict_vals[i]))
+    final_acc = sum(predict_acc)/len(predict_acc)
+    return final_acc,
+
+def evalOneMax_class1(individual, x_te, y_te, test_frac, test_frac_flag):
+    predict_vals = []
+    # Below is an experimental line. This was to change the test sample as well for each but 
+    # later we found out that this is not going to work as we were thinking because of eaSimple's
+    # inherent nature
+    #x_te = x_te.sample(frac=test_frac, replace=test_frac_flag)
+    #y_te = y_te.loc[list(x_te.index)]
+    y_te = pd.DataFrame(y_te)
+    for i in range(0,len(individual)):
+        chromosome = individual[i]
+        predict_vals.append(get_predictions(x_te, chromosome))
+    final_prediction = []
+    final_prediction = np.array([Counter(instance_pred).most_common(1)[0][0] for instance_pred in zip(*predict_vals)])
+    return accuracy_score(final_prediction, y_te),
