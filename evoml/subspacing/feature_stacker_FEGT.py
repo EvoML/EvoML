@@ -89,7 +89,7 @@ class FeatureStackerFEGT(BaseEstimator,RegressorMixin):
     def __init__(self, test_size=0.20,N_population=30,N_individual=5,featMin=1,featMax=None,
         indpb=0.05, ngen = 10, mutpb = 0.40, cxpb = 0.50,
         base_estimator=linear_model.LinearRegression(), crossover_func = tools.cxTwoPoint,
-        test_frac=0.30, test_frac_flag = False, model_type = 'regression', verbose_flag = True):
+        test_frac=0.30, test_frac_flag = False, model_type = 'regression', maxOrMin = 1, verbose_flag = True):
         # model_type defines whether its a regression method or a classification method
         self.test_size = test_size
         self.N_population = N_population
@@ -112,6 +112,7 @@ class FeatureStackerFEGT(BaseEstimator,RegressorMixin):
                 print "featMax cannot be <featMin, hence has been made equal to featMin"
         self.featMax = featMax        
         self.model_type = model_type
+        self.maxOrMin = maxOrMin
         self.verbose_flag = verbose_flag
 
     def get_indiv_sample(self,data,output,base_estimator):
@@ -142,7 +143,7 @@ class FeatureStackerFEGT(BaseEstimator,RegressorMixin):
             The model is trained to predict these models via X.
         '''
         input_feat = list(X.columns.values);
-        creator.create("FitnessMax", base.Fitness, weights=(-1.0,))
+        creator.create("FitnessMax", base.Fitness, weights=(self.maxOrMin,))
         creator.create("Individual", list, fitness=creator.FitnessMax)
         # The train and test sample for the
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=self.test_size)

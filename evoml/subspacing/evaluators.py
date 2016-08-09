@@ -13,6 +13,7 @@ import math
 from sklearn.cross_validation import train_test_split
 from sklearn.metrics import accuracy_score
 from collections import Counter
+from sklearn.cross_validation import StratifiedKFold
 
 def evalOneMax(individual, x_te, y_te, test_frac, test_frac_flag):
     '''
@@ -64,6 +65,33 @@ def evalOneMax2(individual, X_f, y_f):
     final_rmse = sum(predict_rmses)/len(predict_rmses)
     return final_rmse,
 
+def evalOneMax3(individual, folds_CV, y_f):
+    '''
+    FECV - Regression
+    '''
+    predict_rmses = []
+    skf = StratifiedKFold(y_f, n_folds=folds_CV)
+    for train_index, test_index in skf:
+        predict_vals = []
+        for i in range(0,len(individual)):
+            chromosome = individual[i]
+            #print train_index
+            #print chromosome.X
+            X_train, X_test = chromosome.X.loc[train_index], chromosome.X.loc[test_index]
+            y_train, y_test = chromosome.y[train_index], chromosome.y[test_index]
+            mod_ = chromosome.base_estimator.fit(X_train, y_train)
+            predict_vals.append(mod_.predict(X_test))
+        final_prediction = []
+        for i in range(len(predict_vals)):
+            if(i==0):
+                final_prediction = predict_vals[0]
+            else:
+                final_prediction = final_prediction+predict_vals[i]
+        final_prediction = final_prediction/len(predict_vals)
+        predict_rmses.append(math.sqrt(mean_squared_error(y_test, final_prediction)))
+    final_rmse = sum(predict_rmses)/folds_CV
+    return final_rmse,
+
 def evalOneMax_class(individual, X_f, y_f):
     predict_acc = []
     predict_vals = []
@@ -93,3 +121,24 @@ def evalOneMax_class1(individual, x_te, y_te, test_frac, test_frac_flag):
     final_prediction = []
     final_prediction = np.array([Counter(instance_pred).most_common(1)[0][0] for instance_pred in zip(*predict_vals)])
     return accuracy_score(final_prediction, y_te),
+
+def evalOneMax_class2(individual, folds_CV, y_f):
+    '''
+    Classification using the FEMCV algorithm
+    The results are merged and then the prediction is compared.
+    '''
+    predict_acc = []
+    skf = StratifiedKFold(y_f, n_folds=folds_CV)
+    for train_index, test_index in skf:
+        predict_vals = []
+        for i in range(0,len(individual)):
+            chromosome = individual[i]
+            X_train, X_test = chromosome.X.loc[train_index], chromosome.X.loc[test_index]
+            y_train, y_test = chromosome.y[train_index], chromosome.y[test_index]
+            mod_ = chromosome.base_estimator.fit(X_train, y_train)
+            predict_vals.append(mod_.predict(X_test))
+        final_prediction = []
+        final_prediction = np.array([Counter(instance_pred).most_common(1)[0][0] for instance_pred in zip(*predict_vals)])    
+        predict_acc.append(accuracy_score(final_prediction, y_test))
+    final_acc = sum(predict_acc)/folds_CV
+    return final_acc,
