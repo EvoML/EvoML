@@ -20,9 +20,9 @@ import numpy as np
 from sklearn.metrics import mean_squared_error
 import math
 from sklearn.cross_validation import train_test_split
-from evaluators import evalOneMax2
-from evaluators import evalOneMax_class
-from mutators import mutate_feat
+from .evaluators import evalOneMax2
+from .evaluators import evalOneMax_class
+from .mutators import mutate_feat
 from .util import compare_hof
 from sklearn.base import BaseEstimator, RegressorMixin
 from .util import EstimatorGene

@@ -12,7 +12,7 @@ from sklearn import linear_model
 import numpy as np
 from sklearn.metrics import mean_squared_error
 import math
-from util import EstimatorGene
+from .util import EstimatorGene
 
 def mutate_feat(individual, indpb, input_fe, X_tr):
     '''

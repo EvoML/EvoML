@@ -19,10 +19,10 @@ import numpy as np
 from sklearn.metrics import mean_squared_error
 import math
 from sklearn.cross_validation import train_test_split
-from evaluators import evalOneMax
-from evaluators import evalOneMax2
-from evaluators import evalOneMax_class1
-from mutators import mutate_feat
+from .evaluators import evalOneMax
+from .evaluators import evalOneMax2
+from .evaluators import evalOneMax_class1
+from .mutators import mutate_feat
 from .util import compare_hof
 from sklearn.base import BaseEstimator, RegressorMixin
 from .util import EstimatorGene
@@ -104,12 +104,12 @@ class FeatureStackerFEGT(BaseEstimator,RegressorMixin):
         self.test_frac_flag = test_frac_flag
         if(featMin<=0):
             featMin = 1
-            print "featMin cannot be <=0, hence has been modified to 1"
+            print("featMin cannot be <=0, hence has been modified to 1")
         self.featMin = featMin
         if featMax is not None:
             if(featMax<featMin):
                 featMax = featMin
-                print "featMax cannot be <featMin, hence has been made equal to featMin"
+                print("featMax cannot be <featMin, hence has been made equal to featMin")
         self.featMax = featMax        
         self.model_type = model_type
         self.maxOrMin = maxOrMin

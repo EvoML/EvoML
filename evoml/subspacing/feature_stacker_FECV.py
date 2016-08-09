@@ -21,12 +21,12 @@ import numpy as np
 from sklearn.metrics import mean_squared_error
 import math
 from sklearn.cross_validation import train_test_split
-from evaluators import evalOneMax3
-from evaluators import evalOneMax_class2
-from mutators import mutate_feat
-from util import compare_hof
+from .evaluators import evalOneMax3
+from .evaluators import evalOneMax_class2
+from .mutators import mutate_feat
+from .util import compare_hof
 from sklearn.base import BaseEstimator, RegressorMixin
-from util import EstimatorGene
+from .util import EstimatorGene
 from collections import Counter
 
 class FeatureStackerFECV(BaseEstimator,RegressorMixin):
@@ -106,7 +106,7 @@ class FeatureStackerFECV(BaseEstimator,RegressorMixin):
         self.maxOrMin = maxOrMin
         self.verbose_flag = verbose_flag
         if(folds_CV<2):
-            print 'folds for CV cannot be lesser than 2'
+            print('folds for CV cannot be lesser than 2')
             folds_CV = 2
         self.folds_CV = folds_CV
         self.indiv_replace_flag = indiv_replace_flag
@@ -124,8 +124,9 @@ class FeatureStackerFECV(BaseEstimator,RegressorMixin):
         for i in range(0,len(ind)):
             new_feat.append(feat_name[ind[i]])
         new_feat_set = data[new_feat]
-        new_feat_set = new_feat_set.sample(frac=1,replace=indiv_replace_flag)
-        output_new = output.loc[list(new_feat_set.index)]
+        #new_feat_set = new_feat_set.sample(frac=1,replace=indiv_replace_flag)
+        #output_new = output.loc[list(new_feat_set.index)]
+        output_new = output
         return EstimatorGene(new_feat_set,output_new,[],[],base_estimator)
 
     def fit(self, X, y):

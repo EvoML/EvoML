@@ -72,13 +72,14 @@ def evalOneMax3(individual, folds_CV, y_f):
     predict_rmses = []
     skf = StratifiedKFold(y_f, n_folds=folds_CV)
     for train_index, test_index in skf:
+        #train_index = 
         predict_vals = []
         for i in range(0,len(individual)):
             chromosome = individual[i]
-            #print train_index
-            #print chromosome.X
-            X_train, X_test = chromosome.X.loc[train_index], chromosome.X.loc[test_index]
-            y_train, y_test = chromosome.y[train_index], chromosome.y[test_index]
+            
+            print(chromosome.X.shape)
+            X_train, X_test = chromosome.X.iloc[train_index], chromosome.X.iloc[test_index]
+            y_train, y_test = chromosome.y.iloc[train_index], chromosome.y.iloc[test_index]
             mod_ = chromosome.base_estimator.fit(X_train, y_train)
             predict_vals.append(mod_.predict(X_test))
         final_prediction = []
@@ -124,7 +125,7 @@ def evalOneMax_class1(individual, x_te, y_te, test_frac, test_frac_flag):
 
 def evalOneMax_class2(individual, folds_CV, y_f):
     '''
-    Classification using the FEMCV algorithm
+    Classification using the FECV algorithm
     The results are merged and then the prediction is compared.
     '''
     predict_acc = []
@@ -133,8 +134,10 @@ def evalOneMax_class2(individual, folds_CV, y_f):
         predict_vals = []
         for i in range(0,len(individual)):
             chromosome = individual[i]
-            X_train, X_test = chromosome.X.loc[train_index], chromosome.X.loc[test_index]
-            y_train, y_test = chromosome.y[train_index], chromosome.y[test_index]
+            X_train, X_test = chromosome.X.iloc[train_index], chromosome.X.iloc[test_index]
+            y_train, y_test = chromosome.y.iloc[train_index], chromosome.y.iloc[test_index]
+            # print(X_train)
+            # print(X_test)
             mod_ = chromosome.base_estimator.fit(X_train, y_train)
             predict_vals.append(mod_.predict(X_test))
         final_prediction = []
