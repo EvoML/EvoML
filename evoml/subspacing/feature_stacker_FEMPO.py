@@ -23,9 +23,9 @@ from sklearn.cross_validation import train_test_split
 from evaluators import evalOneMax2
 from evaluators import evalOneMax_class
 from mutators import mutate_feat
-from util import compare_hof
+from .util import compare_hof
 from sklearn.base import BaseEstimator, RegressorMixin
-from util import EstimatorGene
+from .util import EstimatorGene
 from collections import Counter
 
 class FeatureStackerFEMPO(BaseEstimator,RegressorMixin):
