@@ -66,19 +66,23 @@ def similar_individual(ind1, ind2):
 class BasicSegmenter_FEGT(BaseEstimator, RegressorMixin):
     """
     Uses basic evolutionary algorithm to find the best subsets of X and trains
-    Linear Regression on each subset. For given row of input, prediction
-    is based on the model trained on segment closest to input.
+    regression model on each subset to form an ensemble. For given row of input,
+    prediction is based on the model trained on segment closest to input.
 
     Same as the BasicSegmenter, but uses list of thrained models instead of DataFrames
     as each individual. Done to boost performance. 
+
+    In Fitness Each Model Global Test (FEGT) - the fitness of each ensemble is defined
+    by it's performance as a unit against a validation set carved out initially.
+    Performance of constituent models is not taken into consideration (like in FEMPT or FEMPO)
+
+    Inherits scikit-learn's BaseEstimator and RegressorMixin class to have sklearn compatible APIs.
 
     Parameters
     ----------
     n : Integer, optional, default, 10
         The number of segments you want in your dataset.
     
-    base_estimator: estimator, default, LinearRegression
-        The basic estimator for all segments.
 
     test_size : float, optional, default, 0.2
         Test size that the algorithm internally uses in its 
@@ -89,6 +93,13 @@ class BasicSegmenter_FEGT(BaseEstimator, RegressorMixin):
 
     init_sample_percentage : float, optional, default, 0.2
     
+    base_estimator: estimator, default, LinearRegression
+        The basic estimator for all segments.
+
+    n_votes: Integer, default, 1,
+        The number of models in the ensemble which get to vote in in the final
+        prediction based on Nearest Neighbour. If same as `n` then final prediction
+        is average of all models in the ensemble.
 
     Attributes
     -----------
@@ -135,35 +146,29 @@ class BasicSegmenter_FEGT(BaseEstimator, RegressorMixin):
 
         
         df_train = pd.concat([pd.DataFrame(X_train), y_train], axis = 1)
+        
+        # Setting up the global test (because this is Fitness Ensemble Global Test)
         df_test = pd.concat([X_test, y_test], axis = 1)
 
-        # print df_train.shape
-        # print df_test.shape
-        # #print df_train.columns
-        
-        # mdl = LinearRegression().fit(df_train[x_columns], df_train[y_column])
-        # print df_train[y_column].ndim
-        # mdl = LassoCV().fit(df_train[x_columns], df_train[y_column])
-        # print np.sqrt(mean_squared_error(mdl.predict(df_test[x_columns]), df_test[y_column]))
 
         ### Setting toolbox
-        creator.create("FitnessMax", base.Fitness, weights=(-1.0,))
-        creator.create("Individual", list , fitness=creator.FitnessMax)
+        creator.create("FitnessMax", base.Fitness, weights=(-1.0,)) #lower the error the better
+        creator.create("Individual", list , fitness=creator.FitnessMax) #list of Estimator Genes
 
         toolbox = base.Toolbox()
 
         ## In this case we will also need to pass the base estimator.
         toolbox.register("mdl_sample", get_mdl_sample, self.init_sample_percentage, df_train, self.base_estimator)
 
-        ## Thinking what our individual will be? A list of scikit mdls, a list of dataframes, or a mixed class.
-        ## Evaluations on individuals are saved and not done again if the fitness remains unchanged.
-        ## In that case models don't need to created again, but they need to be saved for evaluati
-
-        # n = 10, defines an ensemble of ten. #todo: Can push the parameter uptop later 
+        ## Initially, the Gene was a dataframe and not trained model. But in DEAP evaluations on individuals
+        ## are saved and not done again if the fitness remains unchanged. That would help avoid re-training
+        ## of all models in the Individual. Hence, Gene is a custom class EstimatorGene.
+        
+        # n defines the size of the ensemble.
         toolbox.register("individual", tools.initRepeat, creator.Individual, toolbox.mdl_sample, self.n)
         toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
-
+        # evalOneMax_KNN_EG is where the FEGT logic is saved.
         toolbox.register("evaluate", evalOneMax_KNN_EG, df_test = df_test, base_estimator = self.base_estimator, n_votes = self.n_votes)
         toolbox.register("mate", self.crossover_func)
         toolbox.register("mutate", segment_mutator_EG, pool_data = df_train, indpb = self.indpb)
@@ -173,7 +178,7 @@ class BasicSegmenter_FEGT(BaseEstimator, RegressorMixin):
         pop = toolbox.population(n = self.n_population)
        
         hof = tools.HallOfFame(1, similar=similar_individual)
-        #hof = tools.ParetoFront(similar=similar_individual)
+        
         if self.statistics != None:
             stats = tools.Statistics(lambda ind: ind.fitness.values)
             stats.register("avg", np.mean)
@@ -188,12 +193,9 @@ class BasicSegmenter_FEGT(BaseEstimator, RegressorMixin):
         
         self.pop, self.log = algorithms.eaSimple(pop, toolbox, cxpb=self.cxpb, mutpb=self.mutpb, ngen=self.ngen, stats=stats, halloffame= hof, verbose = True)
 
+        # If someone is interested in tinkering with the constituent models.
         self.segments_ = hof[0]
         
-        # print self.segments_
-
-        #should  be setting these pop, stats, hof
-
         return self
 
     def predict(self, X):
@@ -207,20 +209,16 @@ class BasicSegmenter_FEGT(BaseEstimator, RegressorMixin):
         for eg_ in self.segments_:
             
             df_ = eg_.get_data()
-            # clf = LinearRegression()
-            # clf = self.base_estimator()
 
-            # clf = clf.fit(df_.iloc[:,0:-1], df_.iloc[:,-1])
-            
             # EG.estimator is already fit with the internal data.
             ensembles.append(eg_.estimator)
+            
+            # Centroid of the dataframe basically is vector with mean of each column.
+            # Experimental - if one wants only models trained on similar data as the row in question 
+            # to be allowed to vote in the prediction for said row.
+
             centroids.append(centroid_df(df_.iloc[:,0:-1]))
-            ## for sum of mse return uncomment these
-            #y_pred = clf.predict(df_test[x_columns])
-            #mse = mean_squared_error(y_pred, df_test[y_column])
-            #total_mse.append(mse)
-        
-        #print total_mse
+            
         y_preds_ensemble = []
         ensembles = np.array(ensembles)
         for row in X.values:

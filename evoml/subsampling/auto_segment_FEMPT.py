@@ -10,13 +10,7 @@ under the terms of the GNU General Public License v3 or later.
 Check the licesne file recieved along with the software for further details.
 """
 
-## Algorithm: FEMPO
-## Fitness each model private oob.
-
-## The fitness function of ensemble is the average of the RMSE of each child model over private
-## oob set for respective models. 
-
-## mutators: same as before.
+#
 
 def warn(*args, **kwargs):
     pass
@@ -61,7 +55,6 @@ def get_mdl_sample(sample_percentage, pool_data, base_estimator):
 
 
     if sample_percentage == None:
-        #TODO: Can parameterize this min and max range too. But for now, let it flow.
         sample_percentage = random.randrange(0.1, 1, _int=float)
     data = pool_data.sample(frac=sample_percentage, replace = False)
     X = data.iloc[:, 0:-1]
@@ -83,11 +76,13 @@ class BasicSegmenter_FEMPT(BaseEstimator, RegressorMixin):
     Same as the BasicSegmenter, but uses list of trained models instead of DataFrames
     as each individual. Done to boost performance. 
 
-    Algorithm: FEMPO
-    Fitness each model private oob.
+    Algorithm: FEMPT
+    Fitness each model private test
 
     The fitness function of ensemble is the average of the RMSE of each child model over private
-    oob set for respective models. 
+    test-set for respective models. 
+
+    Inherits scikit-learn's BaseEstimator and RegressorMixin class to have sklearn compatible APIs.
 
 
     Parameters
@@ -140,9 +135,6 @@ class BasicSegmenter_FEMPT(BaseEstimator, RegressorMixin):
 
 
     def fit(self, X, y):
-        # Is returning NDFrame and hence errors in concat.
-        # X, y = check_X_y(X, y)
-
         self.X_ = X
     
         self._X_mean = X.mean()
@@ -152,35 +144,17 @@ class BasicSegmenter_FEMPT(BaseEstimator, RegressorMixin):
 
 
 
-#        X_train, X_test, y_train, y_test = train_test_split(X, y, 
-#                                                           test_size=self.test_size)
-        # There is no test created in this. Private oob is used.
-        
         df = pd.concat([X, y], axis = 1)
-
-        # print df_train.shape
-        # print df_test.shape
-        # #print df_train.columns
         
-        # mdl = LinearRegression().fit(df_train[x_columns], df_train[y_column])
-        # print df_train[y_column].ndim
-        # mdl = LassoCV().fit(df_train[x_columns], df_train[y_column])
-        # print np.sqrt(mean_squared_error(mdl.predict(df_test[x_columns]), df_test[y_column]))
-
-        ### Setting toolbox
         creator.create("FitnessMax", base.Fitness, weights=(-1.0,))
         creator.create("Individual", list , fitness=creator.FitnessMax)
 
         toolbox = base.Toolbox()
 
-        ## In this case we will also need to pass the base estimator.
         toolbox.register("mdl_sample", get_mdl_sample, self.init_sample_percentage, df, self.base_estimator)
 
-        ## Thinking what our individual will be? A list of scikit mdls, a list of dataframes, or a mixed class.
-        ## Evaluations on individuals are saved and not done again if the fitness remains unchanged.
-        ## In that case models don't need to created again, but they need to be saved for evaluati
-
-        # n = 10, defines an ensemble of ten. #todo: Can push the parameter uptop later 
+        
+        # n = 10, defines an ensemble of ten. 
         toolbox.register("individual", tools.initRepeat, creator.Individual, toolbox.mdl_sample, self.n)
         toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
@@ -194,8 +168,9 @@ class BasicSegmenter_FEMPT(BaseEstimator, RegressorMixin):
         pop = toolbox.population(n = self.n_population)
        
         hof = tools.HallOfFame(1, similar=similar_individual)
-        #hof = tools.ParetoFront(similar=similar_individual)
 
+
+        # Function required for experimentation - no bearing on final code.
         def eval_unseen_per_gen(ind, unseen_x = self.unseen_x, unseen_y = self.unseen_y):
             """
             Unseen is taken from init params and is a complete  
@@ -236,27 +211,17 @@ class BasicSegmenter_FEMPT(BaseEstimator, RegressorMixin):
             stats.register("min", np.min)
             stats.register("max", np.max)
             
-            # mstats.register("avg", np.mean)
-            # mstats.register("std", np.std)
-            # mstats.register("min", np.min)
-            # mstats.register("max", np.max)
 
         else:
             #None
             stats = self.statistics
 
 
-
-        #stats = tools.Statistics(lambda ind: [x.shape[0] for x in ind])
             
         self.pop, self.log = algorithms.eaSimple(pop, toolbox, cxpb=self.cxpb, mutpb=self.mutpb, ngen=self.ngen, stats=stats, halloffame= hof, verbose = True)
 
         self.segments_ = hof[0]
         
-        # print self.segments_
-
-        #should  be setting these pop, stats, hof
-
         return self
 
     def predict(self, X):
