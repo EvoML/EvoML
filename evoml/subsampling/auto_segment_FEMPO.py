@@ -218,7 +218,7 @@ class BasicSegmenter_FEMPO(BaseEstimator, RegressorMixin):
             stats.register("min", np.min)
             stats.register("max", np.max)
             
-            
+
         else:
             stats = self.statistics
 
